@@ -1,0 +1,15 @@
+[package]
+name = "tex_tmpl_rs"
+authors = ["Andrej Dundovic <andrej@dundovic.com.hr>"]
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+handlebars = "3.5.2"
+tectonic = "0.8.0"
+
+[dev-dependencies]
+tempfile = "3.2.0"
