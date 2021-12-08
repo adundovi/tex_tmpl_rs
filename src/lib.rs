@@ -11,20 +11,28 @@ use handlebars::{
     HelperResult
 };
 
+/// Alias for a `(String, fn(h: &Helper<'_, '_>, hb: &Handlebars<'_>, c: &Context, rc: &mut
+/// RenderContext<'_, '_>, out: &mut dyn Output) -> HelperResult)`.
+pub type HandlebarsHelper =
+    (String,
+     fn(h: &Helper,
+        hb: &Handlebars,
+        c: &Context,
+        rc: &mut RenderContext,
+        out: &mut dyn Output)
+     -> HelperResult);
+
+/// A recipe for `render_pdf` which specifies an input template path, an output PDF path, data in
+/// form of mapping (`Serialize`able) and an optional vector of `HandlebarsHelper`
 #[derive(Clone)]
 pub struct TemplateRecipe<'a, T: serde::Serialize> {
     pub template: &'a Path,
     pub output: &'a Path,
     pub data: &'a T,
-    pub helpers: Option<Vec<(String,
-                         fn(h: &Helper,
-                            hb: &Handlebars,
-                            c: &Context,
-                            rc: &mut RenderContext,
-                            out: &mut dyn Output)
-                         -> HelperResult)>>,
+    pub helpers: Option<Vec<HandlebarsHelper>>,
 }
 
+/// Outputs PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
 pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(), Box<dyn Error>> {
     let mut handlebars = Handlebars::new();
     let template_name = "tex_template";
@@ -32,7 +40,7 @@ pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(),
     if let Some(helpers) = &recipe.helpers {
         for h in helpers {
             let (n, f) = h;
-            handlebars.register_helper(&n, Box::new(f));
+            handlebars.register_helper(n, Box::new(f));
         }
     }
 
@@ -42,7 +50,7 @@ pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(),
     let latex = handlebars.render(template_name, recipe.data)?;
     let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&latex)?;
     let mut file = File::create(&recipe.output)?;
-    file.write(&pdf_data)?;
+    file.write_all(&pdf_data)?;
 
     Ok(())
 }
