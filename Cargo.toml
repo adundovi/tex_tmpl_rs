@@ -1,7 +1,13 @@
 [package]
 name = "tex_tmpl_rs"
-authors = ["Andrej Dundovic <andrej@dundovic.com.hr>"]
 version = "0.1.0"
+description = "Render a LaTeX & Handlebars template into PDF"
+authors = ["Andrej Dundovic <andrej@dundovic.com.hr>"]
+repository = "https://github.com/adundovi/tex_tmpl_rs/"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["latex", "pdf", "template"]
+categories = ["template-engine"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
