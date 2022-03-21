@@ -34,6 +34,11 @@ pub struct TemplateRecipe<'a, T: serde::Serialize> {
 
 /// Outputs PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
 pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(), Box<dyn Error>> {
+    render_tex_and_pdf::<T>(recipe, None)
+}
+
+/// Outputs TeX and PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
+pub fn render_tex_and_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>, tex: Option<&Path>) -> Result<(), Box<dyn Error>> {
     let mut handlebars = Handlebars::new();
     let template_name = "tex_template";
 
@@ -48,6 +53,10 @@ pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(),
                                       recipe.template.to_str().unwrap())?;
 
     let latex = handlebars.render(template_name, recipe.data)?;
+    if let Some(path) = tex {
+        let mut tex_file = File::create(path)?;
+        tex_file.write_all(&latex.as_bytes())?;
+    }
     let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&latex)?;
     let mut file = File::create(&recipe.output)?;
     file.write_all(&pdf_data)?;
