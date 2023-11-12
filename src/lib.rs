@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::path::Path;
 use std::io::Write;
-use std::fs::File;
+use std::fs::{read_to_string, File};
 use handlebars::{
     Handlebars,
     Helper,
@@ -32,34 +32,45 @@ pub struct TemplateRecipe<'a, T: serde::Serialize> {
     pub helpers: Option<Vec<HandlebarsHelper>>,
 }
 
-/// Outputs PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
-pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(), Box<dyn Error>> {
-    render_tex_and_pdf::<T>(recipe, None)
-}
-
-/// Outputs TeX and PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
-pub fn render_tex_and_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>, tex: Option<&Path>) -> Result<(), Box<dyn Error>> {
-    let mut handlebars = Handlebars::new();
+/// Outputs TeX from `TemplateRecipe`
+pub fn prepare_tex<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<String, Box<dyn Error>> {
+    let mut hb_reg = Handlebars::new();
     let template_name = "tex_template";
 
     if let Some(helpers) = &recipe.helpers {
         for h in helpers {
             let (n, f) = h;
-            handlebars.register_helper(n, Box::new(f));
+            hb_reg.register_helper(n, Box::new(f));
         }
     }
 
-    handlebars.register_template_file(template_name,
-                                      recipe.template.to_str().unwrap())?;
+    let tex_content = read_to_string(recipe.template)
+        .expect("Cannot read template file");
 
-    let latex = handlebars.render(template_name, recipe.data)?;
-    if let Some(path) = tex {
-        let mut tex_file = File::create(path)?;
-        tex_file.write_all(&latex.as_bytes())?;
-    }
-    let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&latex)?;
+    hb_reg.register_template_string(template_name, tex_content)?;
+    
+    Ok(hb_reg.render(template_name, recipe.data)?)
+}
+
+/// Outputs PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
+pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(), Box<dyn Error>> {
+
+    let tex = prepare_tex::<T>(recipe)?;
+
+    let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&tex)?;
     let mut file = File::create(&recipe.output)?;
     file.write_all(&pdf_data)?;
+
+    Ok(())
+}
+
+/// Outputs TeX and PDF from `TemplateRecipe` using `tectonic::latex_to_pdf`
+pub fn render_tex<T: serde::Serialize>(recipe: &TemplateRecipe<T>, tex_path: &Path) -> Result<(), Box<dyn Error>> {
+    
+    let tex = prepare_tex::<T>(recipe)?;
+
+    let mut tex_file = File::create(tex_path)?;
+    tex_file.write_all(&tex.as_bytes())?;
 
     Ok(())
 }
@@ -70,10 +81,50 @@ mod tests {
     use std::fs::File;
     use std::collections::HashMap;
     use std::io::Write;
-    use super::{render_pdf, TemplateRecipe};
-
+    use super::{render_pdf, render_tex, prepare_tex, TemplateRecipe};
+    
     #[test]
-    fn render() {
+    fn test_render_tex() {
+        let latex_input = r#"
+            \documentclass{article}
+            \begin{document}
+                Hello, {{foo}}!
+            \end{document}
+        "#;
+        let latex_output = r#"
+            \documentclass{article}
+            \begin{document}
+                Hello, boo!
+            \end{document}
+        "#;
+        
+        let mut dir = tempdir().expect("Temp dir cannot be created");
+        
+        let tex_path = dir.path().join("test.tex");
+        let pdf_path = dir.path().join("test.pdf");
+        
+        {
+            let mut file = File::create(&tex_path).expect("Temp TeX cannot be created");
+            write!(file, "{}", latex_input).unwrap();
+        }
+        
+        let mut data = HashMap::new();
+        data.insert("foo", "boo");
+        
+        let t = TemplateRecipe {
+            template: &tex_path,
+            output: &pdf_path,
+            data: &data,
+            helpers: None
+        };
+
+        let output = prepare_tex(&t);
+
+        assert_eq!(output.unwrap(), latex_output);
+    }
+   
+    #[test]
+    fn test_render_pdf() {
 
         let latex = r#"
             \documentclass{article}
@@ -105,8 +156,8 @@ mod tests {
         let _ = render_pdf(&t);
 
         {
-            let file = File::open(&pdf_path).expect("Temp TeX cannot be created");
-            assert_eq!(file.metadata().unwrap().len(), 2761);
+            let file = File::open(&pdf_path).expect("Temp TeX cannot be opened");
+            assert_eq!(file.metadata().unwrap().len(), 2767);
         }
     }
 }
