@@ -1,6 +1,6 @@
 [package]
 name = "tex_tmpl_rs"
-version = "0.1.2"
+version = "0.1.3"
 description = "Render a LaTeX & Handlebars template into PDF"
 authors = ["Andrej Dundovic <andrej@dundovic.com.hr>"]
 repository = "https://github.com/adundovi/tex_tmpl_rs/"
@@ -14,8 +14,8 @@ edition = "2021"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-handlebars = "4.3"
-tectonic = "0.12"
+handlebars = "4.5"
+tectonic = "0.14"
 
 [dev-dependencies]
 tempfile = "3.2"
