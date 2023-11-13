@@ -8,7 +8,7 @@ use handlebars::{
     Context,
     RenderContext,
     Output,
-    HelperResult
+    RenderError
 };
 
 /// Alias for a `(String, fn(h: &Helper<'_, '_>, hb: &Handlebars<'_>, c: &Context, rc: &mut
@@ -20,7 +20,7 @@ pub type HandlebarsHelper =
         c: &Context,
         rc: &mut RenderContext,
         out: &mut dyn Output)
-     -> HelperResult);
+     -> Result<(), RenderError>);
 
 /// A recipe for `render_pdf` which specifies an input template path, an output PDF path, data in
 /// form of mapping (`Serialize`able) and an optional vector of `HandlebarsHelper`
