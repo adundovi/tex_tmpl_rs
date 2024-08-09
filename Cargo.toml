@@ -15,7 +15,7 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 handlebars = "4.5"
-tectonic = { version = "0.15" }
+tectonic = { version = "0.15", features = ["external-harfbuzz"] }
 
 [dev-dependencies]
 tempfile = "3.2"
