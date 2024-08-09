@@ -2,6 +2,7 @@
 
 ### Changed
 - switched Tectonic to crates.io instead of github
+- use external-harfbuzz with tectonic to avoid compilation issues
 
 # 0.1.2 (2023-01-07)
 
