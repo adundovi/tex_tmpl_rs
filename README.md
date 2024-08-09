@@ -1,2 +1,26 @@
 # tex_tmpl_rs
-Render a LaTeX &amp; Handlebars template into PDF
+
+A small wrapper library for rendering a [LaTeX](https://www.latex-project.org/) / [Handlebars](https://github.com/sunng87/handlebars-rust) template into a PDF document using [Tectonic](https://tectonic-typesetting.github.io).
+
+## Example
+
+```tex
+\documentclass{article}
+\begin{document}
+    Hello, {{foo}}!
+\end{document}
+```
+
+```rust
+let mut data = HashMap::new();
+data.insert("foo", "boo");
+
+let t = TemplateRecipe {
+    template: &tex_path,
+    output: &pdf_path,
+    data: &data,
+    helpers: None,
+};
+
+let _ = render_pdf(&t);
+```

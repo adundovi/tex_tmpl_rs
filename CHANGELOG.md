@@ -1,3 +1,8 @@
+# 0.2.0 (2024-08-09)
+
+### Changed
+- switched Tectonic to crates.io instead of github
+
 # 0.1.2 (2023-01-07)
 
 ### Changed
