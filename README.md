@@ -24,3 +24,17 @@ let t = TemplateRecipe {
 
 let _ = render_pdf(&t);
 ```
+
+## Dependencies
+
+Fedora:
+
+```sh
+dnf install freetype-devel graphite2-devel libicu-devel fontconfig-devel gcc-c++ libpng-devel
+```
+
+### Optional
+
+```sh
+cargo install -F external-harfbuzz tectonic
+```
