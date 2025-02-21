@@ -55,7 +55,7 @@ pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(),
     let tex = prepare_tex::<T>(recipe)?;
 
     let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&tex)?;
-    let mut file = File::create(&recipe.output)?;
+    let mut file = File::create(recipe.output)?;
     file.write_all(&pdf_data)?;
 
     Ok(())
@@ -69,7 +69,7 @@ pub fn render_tex<T: serde::Serialize>(
     let tex = prepare_tex::<T>(recipe)?;
 
     let mut tex_file = File::create(tex_path)?;
-    tex_file.write_all(&tex.as_bytes())?;
+    tex_file.write_all(tex.as_bytes())?;
 
     Ok(())
 }
