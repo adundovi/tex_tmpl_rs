@@ -1,6 +1,6 @@
 [package]
 name = "tex_tmpl_rs"
-version = "0.2.1"
+version = "0.2.2"
 description = "Render a LaTeX & Handlebars template into PDF"
 authors = ["Andrej Dundovic <andrej.dundovic@demiurg.hr>"]
 repository = "https://github.com/adundovi/tex_tmpl_rs/"
