@@ -32,6 +32,8 @@ pub fn prepare_tex<T: serde::Serialize>(
     recipe: &TemplateRecipe<T>,
 ) -> Result<String, Box<dyn Error>> {
     let mut hb_reg = Handlebars::new();
+    hb_reg.register_escape_fn(|s| s.to_string());
+
     let template_name = "tex_template";
 
     if let Some(helpers) = &recipe.helpers {
@@ -53,7 +55,7 @@ pub fn render_pdf<T: serde::Serialize>(recipe: &TemplateRecipe<T>) -> Result<(),
     let tex = prepare_tex::<T>(recipe)?;
 
     let pdf_data: Vec<u8> = tectonic::latex_to_pdf(&tex)?;
-    let mut file = File::create(&recipe.output)?;
+    let mut file = File::create(recipe.output)?;
     file.write_all(&pdf_data)?;
 
     Ok(())
@@ -67,7 +69,7 @@ pub fn render_tex<T: serde::Serialize>(
     let tex = prepare_tex::<T>(recipe)?;
 
     let mut tex_file = File::create(tex_path)?;
-    tex_file.write_all(&tex.as_bytes())?;
+    tex_file.write_all(tex.as_bytes())?;
 
     Ok(())
 }
@@ -155,5 +157,31 @@ mod tests {
             let file = File::open(&pdf_path).expect("Temp TeX cannot be opened");
             assert_eq!(file.metadata().unwrap().len(), 2767);
         }
+    }
+
+    #[test]
+    fn test_render_html_like() {
+        let latex_input = "Hello, {{name}}!";
+        let data = HashMap::from([("name", "<&%#>".to_owned())]);
+        
+        let dir = tempdir().expect("Temp dir cannot be created");
+
+        let tex_path = dir.path().join("test.tex");
+        let pdf_path = dir.path().join("test.pdf");
+
+        {
+            let mut file = File::create(&tex_path).expect("Temp TeX cannot be created");
+            write!(file, "{}", latex_input).unwrap();
+        }
+
+        let t = TemplateRecipe {
+            template: &tex_path,
+            output: &pdf_path,
+            data: &data,
+            helpers: None,
+        };
+
+        let output = prepare_tex(&t).unwrap();
+        assert_eq!(output, "Hello, <&%#>!");
     }
 }
