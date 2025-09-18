@@ -1,6 +1,6 @@
 [package]
 name = "tex_tmpl_rs"
-version = "0.2.2"
+version = "0.2.3"
 description = "Render a LaTeX & Handlebars template into PDF"
 authors = ["Andrej Dundovic <andrej.dundovic@demiurg.hr>"]
 repository = "https://github.com/adundovi/tex_tmpl_rs/"
@@ -15,7 +15,8 @@ edition = "2021"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 handlebars = "4.5"
-tectonic = { version = "0.15", features = ["external-harfbuzz"] }
+#tectonic = { version = "0.15", features = ["external-harfbuzz"] }
+tectonic = { git = "https://github.com/tectonic-typesetting/tectonic.git", rev = "09b1c14e89a8f2cf0c5b6d4bfb08fde07caa2725" }
 
 [dev-dependencies]
 tempfile = "3.2"
